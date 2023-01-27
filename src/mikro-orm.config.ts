@@ -1,7 +1,7 @@
 import { defineConfig } from "@mikro-orm/core";
 import path from "path";
 
-import { Post } from "./entitites/Post";
+import { Post } from "./entities/Post";
 import { __isProd__ } from "./constants";
 
 export default defineConfig({
