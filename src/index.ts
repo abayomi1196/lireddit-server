@@ -6,6 +6,8 @@ import http from "http";
 import cors from "cors";
 import { expressMiddleware } from "@apollo/server/express4";
 import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
+import { ApolloServerPluginLandingPageLocalDefault } from "@apollo/server/plugin/landingPage/default";
+
 import express from "express";
 import bodyParser from "body-parser";
 import session from "express-session";
@@ -26,12 +28,15 @@ const main = async () => {
   app.use(bodyParser.urlencoded({ extended: true }));
 
   const RedisStore = connectRedis(session);
-  const redisClient = createClient();
+  const redisClient = createClient({ legacyMode: true });
   await redisClient
     .on("error", (err) => console.error(`Redis error: ${err}`))
     .on("connect", () => console.info("Redis connected"))
     .connect()
     .catch((err) => console.error("Redis Client Error", err));
+
+  app.set("Access-Control-Allow-Origin", "https://studio.apollographql.com");
+  app.set("Access-Control-Allow-Credentials", true);
 
   app.use(
     session({
@@ -41,7 +46,7 @@ const main = async () => {
         disableTouch: true
       }),
       cookie: {
-        maxAge: 1000 * 60 * 60 * 24 * 365 * 10, //10 yrs
+        maxAge: 10000 * 60 * 60 * 24 * 365 * 10, //10 yrs
         httpOnly: true,
         sameSite: "lax",
         secure: __isProd__ // cookie only works in https
@@ -59,7 +64,10 @@ const main = async () => {
       resolvers: [PostResolver, UserResolver],
       validate: false
     }),
-    plugins: [ApolloServerPluginDrainHttpServer({ httpServer })]
+    plugins: [
+      ApolloServerPluginDrainHttpServer({ httpServer }),
+      ApolloServerPluginLandingPageLocalDefault({ includeCookies: true })
+    ]
   });
 
   await apolloServer.start();
