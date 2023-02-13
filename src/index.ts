@@ -75,10 +75,7 @@ const main = async () => {
   app.use(
     "/",
     cors<cors.CorsRequest>({
-      origin: [
-        "http://localhost:6380/",
-        "'https://studio.apollographql.com', 'ws://localhost:6380/'"
-      ],
+      origin: "http://localhost:3000",
       credentials: true
     }),
     bodyParser.json({ limit: "50mb" }),
