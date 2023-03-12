@@ -11,7 +11,7 @@ import { ApolloServerPluginLandingPageLocalDefault } from "@apollo/server/plugin
 import express from "express";
 import bodyParser from "body-parser";
 import session from "express-session";
-import { createClient } from "redis";
+import Redis, { Cluster } from "ioredis";
 import connectRedis from "connect-redis";
 
 import mikroOrmConfig from "./mikro-orm.config";
@@ -27,9 +27,11 @@ const main = async () => {
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
 
+  const redis = new Redis();
+  const client: Cluster = new Cluster([]);
   const RedisStore = connectRedis(session);
-  const redisClient = createClient({ legacyMode: true });
-  await redisClient
+
+  await redis
     .on("error", (err) => console.error(`Redis error: ${err}`))
     .on("connect", () => console.info("Redis connected"))
     .connect()
@@ -42,7 +44,7 @@ const main = async () => {
     session({
       name: COOKIE_NAME,
       store: new RedisStore({
-        client: redisClient,
+        client: client as any,
         disableTouch: true
       }),
       cookie: {
@@ -80,7 +82,7 @@ const main = async () => {
     }),
     bodyParser.json({ limit: "50mb" }),
     expressMiddleware(apolloServer, {
-      context: async ({ req, res }) => ({ em: orm.em, req, res })
+      context: async ({ req, res }) => ({ em: orm.em, req, res, redis })
     })
   );
 

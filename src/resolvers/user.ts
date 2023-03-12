@@ -8,15 +8,17 @@ import {
   Resolver
 } from "type-graphql";
 import argon from "argon2";
+import { v4 } from "uuid";
 
 //@ts-ignore
 import session from "express-session";
 
 import { User } from "../entities/User";
 import { MyContext } from "src/types";
-import { COOKIE_NAME } from "../constants";
+import { COOKIE_NAME, FORGET_PASSWORD_PREFIX } from "../constants";
 import { UsernamePasswordInput } from "./UsernamePasswordInput";
 import { validateRegister } from "../utils/validateRegister";
+import { sendEmail } from "src/utils/sendEmail";
 
 declare module "express-session" {
   export interface SessionData {
@@ -43,12 +45,33 @@ class UserResponse {
 
 @Resolver()
 export class UserResolver {
-  // @Mutation(() => Boolean)
-  // async forgotPassword(@Arg("email") email: string, @Ctx() { em }: MyContext) {
-  //   // const user = await em.findOne(User, { email });
-  //   return true;
-  // }
+  @Mutation(() => Boolean)
+  async forgotPassword(
+    @Arg("email") email: string,
+    @Ctx() { em, redis }: MyContext
+  ) {
+    const user = await em.findOne(User, { email });
+    if (!user) {
+      // the email is not in the database
+      return true;
+    }
 
+    const token = v4();
+
+    await redis.set(
+      FORGET_PASSWORD_PREFIX + token,
+      user.id,
+      "EX",
+      1000 * 60 * 60 * 24 * 3
+    );
+
+    sendEmail(
+      email,
+      `<a href='http://localhost:3000/change-password/${token}'>reset password</a>`
+    );
+
+    return true;
+  }
   @Query(() => User, { nullable: true })
   async me(@Ctx() { req, em }: MyContext) {
     if (!req.session.userId) {
