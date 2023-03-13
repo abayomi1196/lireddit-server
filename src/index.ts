@@ -7,11 +7,10 @@ import cors from "cors";
 import { expressMiddleware } from "@apollo/server/express4";
 import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
 import { ApolloServerPluginLandingPageLocalDefault } from "@apollo/server/plugin/landingPage/default";
-
 import express from "express";
 import bodyParser from "body-parser";
 import session from "express-session";
-import Redis, { Cluster } from "ioredis";
+import Redis from "ioredis";
 import connectRedis from "connect-redis";
 
 import mikroOrmConfig from "./mikro-orm.config";
@@ -28,14 +27,11 @@ const main = async () => {
   app.use(bodyParser.urlencoded({ extended: true }));
 
   const redis = new Redis();
-  const client: Cluster = new Cluster([]);
   const RedisStore = connectRedis(session);
 
-  await redis
+  redis
     .on("error", (err) => console.error(`Redis error: ${err}`))
-    .on("connect", () => console.info("Redis connected"))
-    .connect()
-    .catch((err) => console.error("Redis Client Error", err));
+    .on("connect", () => console.info("Redis connected"));
 
   app.set("Access-Control-Allow-Origin", "https://studio.apollographql.com");
   app.set("Access-Control-Allow-Credentials", true);
@@ -44,7 +40,7 @@ const main = async () => {
     session({
       name: COOKIE_NAME,
       store: new RedisStore({
-        client: client as any,
+        client: redis as any,
         disableTouch: true
       }),
       cookie: {
@@ -71,7 +67,6 @@ const main = async () => {
       ApolloServerPluginLandingPageLocalDefault({ includeCookies: true })
     ]
   });
-
   await apolloServer.start();
 
   app.use(
@@ -89,6 +84,7 @@ const main = async () => {
   await new Promise<void>((resolve) =>
     httpServer.listen({ port: 6380 }, resolve)
   );
+
   console.log(`🚀 Server ready at http://localhost:6380/`);
 };
 

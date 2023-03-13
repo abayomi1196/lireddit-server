@@ -18,7 +18,7 @@ import { MyContext } from "src/types";
 import { COOKIE_NAME, FORGET_PASSWORD_PREFIX } from "../constants";
 import { UsernamePasswordInput } from "./UsernamePasswordInput";
 import { validateRegister } from "../utils/validateRegister";
-import { sendEmail } from "src/utils/sendEmail";
+import { sendEmail } from "../utils/sendEmail";
 
 declare module "express-session" {
   export interface SessionData {
@@ -65,6 +65,7 @@ export class UserResolver {
       1000 * 60 * 60 * 24 * 3
     );
 
+    // TODO- fix sendEMail implementation
     sendEmail(
       email,
       `<a href='http://localhost:3000/change-password/${token}'>reset password</a>`

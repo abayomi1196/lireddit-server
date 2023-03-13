@@ -6,8 +6,6 @@ export async function sendEmail(to: string, html: string) {
   // let testAccount = await nodemailer.createTestAccount();
   // console.log("testAccount", testAccount);
 
-  console.log("Credentials obtained, sending message...");
-
   // create reusable transporter object using the default SMTP transport
   let transporter = nodemailer.createTransport({
     host: "smtp.ethereal.email",
