@@ -62,14 +62,15 @@ export class UserResolver {
       FORGET_PASSWORD_PREFIX + token,
       user.id,
       "EX",
-      1000 * 60 * 60 * 24 * 3
+      1000 * 60 * 60 * 24 * 3 //3 days
     );
 
-    // TODO- fix sendEMail implementation
-    sendEmail(
+    await sendEmail(
       email,
       `<a href='http://localhost:3000/change-password/${token}'>reset password</a>`
-    );
+    )
+      .then(console.log)
+      .catch(console.error);
 
     return true;
   }
