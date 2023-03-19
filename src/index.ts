@@ -1,5 +1,4 @@
 import "reflect-metadata";
-import { MikroORM } from "@mikro-orm/core";
 import { buildSchema } from "type-graphql";
 import { ApolloServer } from "@apollo/server";
 import http from "http";
@@ -13,14 +12,14 @@ import session from "express-session";
 import Redis from "ioredis";
 import connectRedis from "connect-redis";
 
-import mikroOrmConfig from "./mikro-orm.config";
 import { PostResolver } from "./resolvers/post";
 import { UserResolver } from "./resolvers/user";
 import { COOKIE_NAME, __isProd__ } from "./constants";
+import dataSource from "./orm-config";
 
 const main = async () => {
-  const orm = await MikroORM.init(mikroOrmConfig);
-  orm.getMigrator().up();
+  // initialize TypeORM
+  await dataSource.initialize();
 
   const app = express();
   app.use(bodyParser.json());
@@ -77,7 +76,7 @@ const main = async () => {
     }),
     bodyParser.json({ limit: "50mb" }),
     expressMiddleware(apolloServer, {
-      context: async ({ req, res }) => ({ em: orm.em, req, res, redis })
+      context: async ({ req, res }) => ({ req, res, redis })
     })
   );
 
