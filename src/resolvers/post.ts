@@ -8,7 +8,8 @@ import {
   Field,
   InputType,
   Ctx,
-  UseMiddleware
+  UseMiddleware,
+  Int
 } from "type-graphql";
 
 import { Post } from "../entities/Post";
@@ -27,7 +28,7 @@ export class PostResolver {
   // get all posts
   @Query(() => [Post])
   async posts(
-    @Arg("limit") limit: number,
+    @Arg("limit", () => Int) limit: number,
     @Arg("cursor", () => String, { nullable: true }) cursor: string | null
   ): Promise<Post[]> {
     const realLimit = Math.min(50, limit);

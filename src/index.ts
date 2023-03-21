@@ -20,7 +20,6 @@ import dataSource from "./orm-config";
 const main = async () => {
   // initialize TypeORM
   await dataSource.initialize();
-
   const app = express();
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
