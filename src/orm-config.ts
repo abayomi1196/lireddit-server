@@ -3,6 +3,7 @@ import path from "path";
 
 import { Post } from "./entities/Post";
 import { User } from "./entities/User";
+import { Updoot } from "./entities/Updoot";
 
 const dataSource = new DataSource({
   type: "postgres",
@@ -12,7 +13,7 @@ const dataSource = new DataSource({
   logging: true,
   synchronize: true,
   migrations: [path.join(__dirname, "./migrations/*")],
-  entities: [Post, User]
+  entities: [Post, User, Updoot]
 });
 
 export default dataSource;
